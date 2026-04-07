@@ -7,20 +7,8 @@ class EventService {
   private controllers: Controller[] = [];
   private actions: ActionController[] = [];
 
-  constructor() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const context = require.context("../controllers", true, /\.controller.ts$/);
-    context.keys().forEach((it: string) =>
-      this.controllers.push({
-        name: this.normalizeControllerName(it),
-        instance: context(it).default,
-      }),
-    );
-  }
-
   private normalizeControllerName(controller: string) {
-    return controller.slice(2, -3).replace(".controller", "");
+    return controller.substring(controller.lastIndexOf('/') + 1, controller.indexOf('.controller.ts'));
   }
 
   private registerIpcAction(
@@ -28,13 +16,24 @@ class EventService {
     method: string,
     controller: object,
   ) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     ipcMain.handle(action, (_, ...args: any[]) => controller[method](...args));
   }
 
-  public registerControllers() {
+  public async registerControllers() {
     if (!this.registered) {
+      // @ts-ignore
+      const context = import.meta.glob('../controllers/*.controller.ts');
+
+      await Promise.all(
+        Object.keys(context).map(async (it: string) => {
+          this.controllers.push({
+            name: this.normalizeControllerName(it),
+            instance: (await context[it]()).default,
+          })
+        })
+      );
+
       this.controllers.forEach((controller) => {
         const actionController: ActionController = {
           key: controller.name,

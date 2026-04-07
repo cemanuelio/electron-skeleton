@@ -1,18 +1,16 @@
-import { FC } from 'react';
-import { Provider } from 'react-redux';
-import {
-  createHashRouter,
-  RouterProvider,
-} from 'react-router-dom';
-import store from './store';
+const App = () => {
 
-const router = createHashRouter([]);
+  const maximize = () => {
+    // electron/controllers/main.controller.ts -> maximize()
+    app.main.maximize();
+  };
 
-const App: FC = () => {
   return (
-    <Provider store={store}>
-      <RouterProvider router={router} />
-    </Provider>
+    <div style={{ textAlign: 'center' }}>
+      <h1>Electron Skeleton</h1>
+      <h3>Eletron + Forge + Typescript + Vite + React</h3>
+      <button onClick={maximize}>Maximize window</button>
+    </div>
   );
 };
 

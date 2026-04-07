@@ -1,13 +1,14 @@
 import type { ForgeConfig } from '@electron-forge/shared-types';
 import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerZIP } from '@electron-forge/maker-zip';
-import { MakerDeb } from '@electron-forge/maker-deb';
-import { MakerRpm } from '@electron-forge/maker-rpm';
-import { WebpackPlugin } from '@electron-forge/plugin-webpack';
-import { mainConfig } from './config/webpack.main.config';
-import { rendererConfig } from './config/webpack.renderer.config';
+import { VitePlugin } from '@electron-forge/plugin-vite';
+import { FusesPlugin } from '@electron-forge/plugin-fuses';
+import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
 const config: ForgeConfig = {
+  packagerConfig: {
+    asar: true,
+  },
   rebuildConfig: {},
   makers: [
     new MakerSquirrel({
@@ -15,28 +16,37 @@ const config: ForgeConfig = {
       skipUpdateIcon: true,
     }),
     new MakerZIP({}, ['darwin']),
-    new MakerRpm({}),
-    new MakerDeb({}),
+    new MakerZIP({}, ['linux']),
   ],
   plugins: [
-    new WebpackPlugin({
-      mainConfig,
-      devContentSecurityPolicy: 'connect-src \'self\' * \'unsafe-eval\'',
-      loggerPort: 9111,
-      port: 3030,
-      renderer: {
-        config: rendererConfig,
-        entryPoints: [
-          {
-            html: './src/index.html',
-            js: './src/react/index.tsx',
-            name: 'main_window',
-            preload: {
-              js: './src/electron/preload.ts',
-            },
-          },
-        ],
-      },
+    new VitePlugin({
+      build: [
+        {
+          entry: 'src/electron/index.ts',
+          config: 'config/vite.main.config.ts',
+          target: 'main',
+        },
+        {
+          entry: 'src/electron/preload.ts',
+          config: 'config/vite.preload.config.ts',
+          target: 'preload',
+        },
+      ],
+      renderer: [
+        {
+          name: 'main_window',
+          config: 'config/vite.renderer.config.ts',
+        },
+      ],
+    }),
+    new FusesPlugin({
+      version: FuseVersion.V1,
+      [FuseV1Options.RunAsNode]: false,
+      [FuseV1Options.EnableCookieEncryption]: true,
+      [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+      [FuseV1Options.EnableNodeCliInspectArguments]: false,
+      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
+      [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
 };

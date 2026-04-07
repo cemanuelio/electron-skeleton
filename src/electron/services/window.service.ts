@@ -4,8 +4,8 @@ import {
   screen,
 } from "electron";
 
-declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+declare const MAIN_WINDOW_VITE_PRELOAD: string;
+declare const MAIN_WINDOW_VITE_HTML: string;
 
 class WindowService {
   mainWindow: BrowserWindow;
@@ -25,12 +25,16 @@ class WindowService {
         frame: false,
         transparent: true,
         webPreferences: {
-          preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+          preload: MAIN_WINDOW_VITE_PRELOAD,
         },
         ...config,
       });
 
-      this.mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+      if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+          this.mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+      } else {
+        this.mainWindow.loadFile(MAIN_WINDOW_VITE_HTML);
+      }
 
       this.centerWindow(this.mainWindow);
     }
@@ -52,6 +56,12 @@ class WindowService {
       this.mainWindow.setResizable(true);
       this.mainWindow.setSize(width, height, true);
       this.mainWindow.setResizable(false);
+    }
+  }
+
+  maximizeMainWindow() {
+    if (this.exists()) {
+      this.mainWindow.maximize();
     }
   }
 

@@ -11,9 +11,14 @@ class MainService {
   }
 
   async init() {
-    eventService.registerControllers();
+    await eventService.registerControllers();
     this.registerGlobalActions();
-    windowService.createMainWindow({ width: 800, height: 500 });
+    windowService.createMainWindow({
+      width: 720,
+      height: 600,
+      frame: true,
+      transparent: false,
+    });
   }
 
   close() {

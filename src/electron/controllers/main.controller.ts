@@ -6,6 +6,10 @@ class MainController {
     windowService.resizeMainWindow(width, height);
   }
 
+  maximize() {
+    windowService.maximizeMainWindow();
+  }
+
   minimize() {
     windowService.minimizeMainWindow();
   }
